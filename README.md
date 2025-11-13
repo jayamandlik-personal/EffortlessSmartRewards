@@ -1,0 +1,2 @@
+# EffortlessSmartRewards
+Effortless SmartRewards
