@@ -1,0 +1,4 @@
+id,customer_id,name,email,primary_geo_location,latitude,longitude,created_at,updated_at
+1,1001,Sarah Johnson,sarah.johnson@example.com,San Francisco CA,37.7749,-122.4194,2024-01-01T00:00:00,
+2,1002,Michael Chen,michael.chen@example.com,New York NY,40.7128,-74.0060,2024-01-01T00:00:00,
+

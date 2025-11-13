@@ -1,0 +1,4 @@
+id,user_id,notifications_enabled,priceless_geo_location,priceless_notifications_enabled,auto_apply_rewards_enabled,created_at,updated_at
+1,1,True,San Francisco CA,True,True,2024-01-01T00:00:00,
+2,2,True,New York NY,True,True,2024-01-01T00:00:00,
+

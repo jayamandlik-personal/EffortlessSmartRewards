@@ -1,0 +1,105 @@
+.transactions-page {
+  max-width: 1400px;
+}
+
+.transactions-table-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e5e7;
+  overflow-x: auto;
+}
+
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.transactions-table thead {
+  background-color: #f5f5f7;
+}
+
+.transactions-table th {
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  color: #6e6e73;
+  border-bottom: 1px solid #e5e5e7;
+}
+
+.transactions-table td {
+  padding: 16px;
+  border-bottom: 1px solid #e5e5e7;
+  font-size: 14px;
+}
+
+.transactions-table tbody tr:hover {
+  background-color: #f5f5f7;
+}
+
+.transactions-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.transaction-description {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.transaction-memo {
+  font-size: 12px;
+  color: #6e6e73;
+}
+
+.category-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background-color: #f5f5f7;
+  color: #6e6e73;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.amount-negative {
+  color: #1d1d1f;
+  font-weight: 600;
+}
+
+.amount-positive {
+  color: #43e97b;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-success {
+  background-color: #43e97b20;
+  color: #43e97b;
+}
+
+.badge-missed {
+  background-color: #ff6b6b20;
+  color: #ff6b6b;
+}
+
+.savings-amount {
+  color: #43e97b;
+  font-weight: 600;
+}
+
+.loading {
+  text-align: center;
+  padding: 48px;
+  font-size: 18px;
+  color: #6e6e73;
+}
+

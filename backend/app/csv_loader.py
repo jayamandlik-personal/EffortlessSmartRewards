@@ -1,0 +1,192 @@
+"""
+CSV Data Loader Service
+
+Loads data from CSV files instead of database for POC.
+This is where Open Finance transaction data would be loaded from CSV files.
+"""
+import csv
+import os
+from datetime import datetime
+from decimal import Decimal
+from typing import List, Dict, Optional
+from pathlib import Path
+
+
+class CSVDataLoader:
+    """Loads data from CSV files in the data directory"""
+    
+    def __init__(self, data_dir: str = "data"):
+        self.data_dir = Path(data_dir)
+        if not self.data_dir.exists():
+            self.data_dir = Path(__file__).parent.parent / data_dir
+    
+    def _read_csv(self, filename: str) -> List[Dict]:
+        """Read a CSV file and return list of dictionaries"""
+        filepath = self.data_dir / filename
+        if not filepath.exists():
+            return []
+        
+        with open(filepath, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            return list(reader)
+    
+    def _parse_bool(self, value: str) -> bool:
+        """Parse boolean from string"""
+        if isinstance(value, bool):
+            return value
+        return value.lower() in ('true', '1', 'yes', 'on')
+    
+    def _parse_decimal(self, value: str) -> Optional[Decimal]:
+        """Parse decimal from string"""
+        if not value or value == '':
+            return None
+        try:
+            return Decimal(value)
+        except:
+            return None
+    
+    def _parse_datetime(self, value: str) -> Optional[datetime]:
+        """Parse datetime from string"""
+        if not value or value == '':
+            return None
+        try:
+            # Try ISO format
+            return datetime.fromisoformat(value.replace('Z', '+00:00'))
+        except:
+            try:
+                # Try common formats
+                for fmt in ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d', '%Y-%m-%dT%H:%M:%S']:
+                    try:
+                        return datetime.strptime(value, fmt)
+                    except:
+                        continue
+            except:
+                pass
+        return None
+    
+    def load_users(self) -> List[Dict]:
+        """Load users from CSV"""
+        rows = self._read_csv('users.csv')
+        for row in rows:
+            row['id'] = int(row['id'])
+            row['customer_id'] = int(row['customer_id'])
+            row['latitude'] = self._parse_decimal(row.get('latitude', ''))
+            row['longitude'] = self._parse_decimal(row.get('longitude', ''))
+            row['created_at'] = self._parse_datetime(row.get('created_at', ''))
+            row['updated_at'] = self._parse_datetime(row.get('updated_at', ''))
+        return rows
+    
+    def load_user_preferences(self) -> List[Dict]:
+        """Load user preferences from CSV"""
+        rows = self._read_csv('user_preferences.csv')
+        for row in rows:
+            row['id'] = int(row['id'])
+            row['user_id'] = int(row['user_id'])
+            row['notifications_enabled'] = self._parse_bool(row.get('notifications_enabled', 'True'))
+            row['priceless_notifications_enabled'] = self._parse_bool(row.get('priceless_notifications_enabled', 'True'))
+            row['auto_apply_rewards_enabled'] = self._parse_bool(row.get('auto_apply_rewards_enabled', 'True'))
+            row['created_at'] = self._parse_datetime(row.get('created_at', ''))
+            row['updated_at'] = self._parse_datetime(row.get('updated_at', ''))
+        return rows
+    
+    def load_rewards(self) -> List[Dict]:
+        """Load rewards from CSV"""
+        rows = self._read_csv('rewards.csv')
+        for row in rows:
+            row['id'] = int(row['id'])
+            row['start_date'] = self._parse_datetime(row.get('start_date', ''))
+            row['end_date'] = self._parse_datetime(row.get('end_date', ''))
+            row['max_savings_amount'] = self._parse_decimal(row.get('max_savings_amount', ''))
+            row['geo_latitude'] = self._parse_decimal(row.get('geo_latitude', ''))
+            row['geo_longitude'] = self._parse_decimal(row.get('geo_longitude', ''))
+            row['geo_radius_km'] = self._parse_decimal(row.get('geo_radius_km', ''))
+            row['is_auto_applicable'] = self._parse_bool(row.get('is_auto_applicable', 'False'))
+            row['requires_user_opt_in'] = self._parse_bool(row.get('requires_user_opt_in', 'False'))
+            row['percentage_value'] = self._parse_decimal(row.get('percentage_value', ''))
+            row['fixed_amount_value'] = self._parse_decimal(row.get('fixed_amount_value', ''))
+            row['created_at'] = self._parse_datetime(row.get('created_at', ''))
+            row['updated_at'] = self._parse_datetime(row.get('updated_at', ''))
+        return rows
+    
+    def load_transactions(self) -> List[Dict]:
+        """
+        Load transactions from CSV.
+        
+        Transaction History Schema:
+        Date Time Fields: Posted (by FI) and Transaction date/time fields available.
+        Customer ID: A number generated by MA Open Banking that uniquely identifies a customer.
+        Account ID: A number generated by MA Open Banking that uniquely identifies a customer's account: checking, savings, etc.
+        Description + Memo: Two free text fields, often concatenated by data science, that offer information on merchant, payment processor, geographic location, and transaction type (P2P, P2M, Income, etc).
+        Value Amount: In USD.
+        """
+        rows = self._read_csv('transactions.csv')
+        for row in rows:
+            row['id'] = int(row['id'])
+            row['customer_id'] = int(row['customer_id'])
+            row['account_id'] = int(row['account_id'])
+            row['posted_at'] = self._parse_datetime(row.get('posted_at', ''))
+            row['transaction_at'] = self._parse_datetime(row.get('transaction_at', ''))
+            row['value_amount_usd'] = self._parse_decimal(row.get('value_amount_usd', '0'))
+            row['user_id'] = int(row['user_id']) if row.get('user_id') else None
+            row['matched_reward_id'] = int(row['matched_reward_id']) if row.get('matched_reward_id') else None
+            row['reward_applied'] = self._parse_bool(row.get('reward_applied', 'False'))
+            row['reward_savings_amount'] = self._parse_decimal(row.get('reward_savings_amount', ''))
+            row['notification_triggered'] = self._parse_bool(row.get('notification_triggered', 'False'))
+            row['created_at'] = self._parse_datetime(row.get('created_at', ''))
+            row['updated_at'] = self._parse_datetime(row.get('updated_at', ''))
+        return rows
+    
+    def get_user_by_id(self, user_id: int) -> Optional[Dict]:
+        """Get a user by ID"""
+        users = self.load_users()
+        for user in users:
+            if user['id'] == user_id:
+                return user
+        return None
+    
+    def get_user_by_customer_id(self, customer_id: int) -> Optional[Dict]:
+        """Get a user by customer_id"""
+        users = self.load_users()
+        for user in users:
+            if user['customer_id'] == customer_id:
+                return user
+        return None
+    
+    def get_user_preferences(self, user_id: int) -> Optional[Dict]:
+        """Get user preferences by user_id"""
+        preferences = self.load_user_preferences()
+        for pref in preferences:
+            if pref['user_id'] == user_id:
+                return pref
+        return None
+    
+    def get_transactions_by_user(self, user_id: int) -> List[Dict]:
+        """Get all transactions for a user"""
+        transactions = self.load_transactions()
+        return [t for t in transactions if t.get('user_id') == user_id]
+    
+    def get_rewards(self, active_only: bool = True, category: Optional[str] = None) -> List[Dict]:
+        """Get rewards, optionally filtered by active status and category"""
+        rewards = self.load_rewards()
+        now = datetime.now()
+        
+        if active_only:
+            rewards = [
+                r for r in rewards
+                if r['start_date'] and r['start_date'] <= now
+                and (not r['end_date'] or r['end_date'] >= now)
+            ]
+        
+        if category:
+            rewards = [r for r in rewards if r.get('category') == category]
+        
+        return rewards
+    
+    def get_reward_by_id(self, reward_id: int) -> Optional[Dict]:
+        """Get a reward by ID"""
+        rewards = self.load_rewards()
+        for reward in rewards:
+            if reward['id'] == reward_id:
+                return reward
+        return None
+
